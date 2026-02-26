@@ -2,6 +2,7 @@ from manage_index import update_indexes, INDEX_MAP
 from retreiver import query_indexes
 import argparse
 
+OUTPUT = "./output.txt"
 
 def update_indexes():
     for name, index_obj in INDEX_MAP.items():
@@ -9,36 +10,45 @@ def update_indexes():
 
 
 def run_query(query, index_name, top_k):
-    print(f"Query: {query}")
-    print(f"Index: {index_name}")
-    print()
+    if top_k > 32:
+        return f"ERROR: Cannot display more that 32 results\n"
 
-    results = query_indexes(index_name, query, top_k=top_k)
+    try:
+        results = query_indexes(index_name, query, top_k=top_k)
+    except ValueError:
+        return f"ERROR: The index '{index_name}' does not exist\n"
 
+    output_str = ""
+    output_str += f"Query: {query}\n"
+    output_str += f"Index: {index_name}\n\n"
+    
     for i, node in enumerate(results):
-        print(f"\nResult {i + 1}:")
+        output_str += f"Result {i + 1}:\n"
         
         if hasattr(node, "score"):
-            print(f"Score: {node.score}")
+            output_str += f"Score: {node.score}\n"
 
         if hasattr(node, "metadata"):
             metadata = node.metadata
 
             if "file_name" in metadata:
-                print(f"File: {metadata['file_name']}")
+                output_str += f"File: {metadata['file_name']}\n"
 
             if "file_path" in metadata:
-                print(f"Path: {metadata['file_path']}")
+                output_str += f"Path: {metadata['file_path']}\n"
 
         if hasattr(node, "text"):
-            print(node.text)
+            output_str += node.text + '\n'
         elif hasattr(node, "get_text"):
-            print(node.get_text())
+            output_str += node.get_text() + '\n'
+    return output_str
 
 def list_indexes():
-    print(f"Indexes:")
+    output_str = "Indexes:\n"
     for i, name in enumerate(INDEX_MAP.keys()):
-        print(name)
+        output_str += f"{i + 1}) {name}\n"
+    return output_str
+        
 
 def main():
     parser = argparse.ArgumentParser(description="Index CLI")
@@ -84,14 +94,18 @@ def main():
 
     # query
     elif args.query:
-        run_query(
+        out = run_query(
             query=args.query,
             index_name=args.index,
             top_k=args.top_k
         )
+        with open(OUTPUT, "w") as f:
+            f.write(out)
 
     elif args.list:
-        list_indexes()
+        out = list_indexes()
+        with open(OUTPUT, "w") as f:
+            f.write(out)
 
     else:
         print("No action specified. Try -h or --help")
