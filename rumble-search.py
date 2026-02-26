@@ -1,13 +1,10 @@
 from manage_index import update_indexes, INDEX_MAP
 from retreiver import query_indexes
-
 import argparse
-from your_index_file import INDEX_MAP, query_indexes  # adjust import
 
 
 def update_indexes():
     for name, index_obj in INDEX_MAP.items():
-        print(f"Updating index: {name}")
         index_obj.update()
 
 
@@ -86,14 +83,14 @@ def main():
         update_indexes()
 
     # query
-    if args.query:
+    elif args.query:
         run_query(
             query=args.query,
             index_name=args.index,
             top_k=args.top_k
         )
 
-    if args.list:
+    elif args.list:
         list_indexes()
 
     else:

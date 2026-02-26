@@ -1,6 +1,5 @@
 from data_processing import get_index, ingest_files_to_index
 
-BASE_INDEX_DIR = "./Rumble-Search/indexes"
 
 class IndexWithData:
     def __init__(self, index, data):
