@@ -8,10 +8,9 @@ def update_indexes():
     for name, index_obj in INDEX_MAP.items():
         index_obj.update()
 
-
 def run_query(query, index_name, top_k):
-    if top_k > 32:
-        return f"ERROR: Cannot display more that 32 results\n"
+    if top_k > 100:
+        return f"ERROR: Cannot display more that 100 results\n"
 
     try:
         results = query_indexes(index_name, query, top_k=top_k)
@@ -87,29 +86,32 @@ def main():
     )
 
     args = parser.parse_args()
+    output_str = ""
 
     # update
     if args.update:
         update_indexes()
 
+    
     # query
     elif args.query:
-        out = run_query(
+        output_str = run_query(
             query=args.query,
             index_name=args.index,
             top_k=args.top_k
         )
         with open(OUTPUT, "w") as f:
-            f.write(out)
+            f.write(output_str)
 
     elif args.list:
-        out = list_indexes()
+        output_str = list_indexes()
         with open(OUTPUT, "w") as f:
-            f.write(out)
+            f.write(output_str)
 
     else:
         print("No action specified. Try -h or --help")
 
+    print(output_str)
 
 if __name__ == "__main__":
     main()

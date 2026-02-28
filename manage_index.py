@@ -1,5 +1,5 @@
 from data_processing import get_index, ingest_files_to_index
-
+from local_paths import RFC_PATH, MISC_PATH
 
 class IndexWithData:
     def __init__(self, index, data):
@@ -12,18 +12,25 @@ class IndexWithData:
     def retrieve_index(self):
         return self.index
 
+
 # Indexes
+rfc_iwd = IndexWithData(
+    get_index("rfc"),
+    RFC_PATH
+)
 misc_iwd = IndexWithData(
     get_index("misc"),
-    "./data/misc")
-
+    MISC_PATH
+)
 
 
 # maps a name to an index
 INDEX_MAP = {
-    "misc" : misc_iwd
+    "rfc": rfc_iwd,
+    "misc": misc_iwd
 }
 
+
 def update_indexes():
-    for name in INDEX_MAP.keys():
-        INDEX_MAP[name].update()
+    for name, index_obj in INDEX_MAP.items():
+        index_obj.update()

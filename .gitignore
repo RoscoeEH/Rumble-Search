@@ -3,3 +3,5 @@ indexes/
 storage/
 data/
 output.txt
+.emacs-compile
+local_paths.py

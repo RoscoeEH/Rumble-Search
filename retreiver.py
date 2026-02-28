@@ -6,31 +6,24 @@ def query_indexes(index_name, query, top_k):
         if index_name not in INDEX_MAP:
             raise ValueError(f"Index '{index_name}' not found.")
         
-        retriever = INDEX_MAP[index_name].retrieve_index().as_retriever(
-            similarity_top_k=top_k
-        )
+        index_obj = INDEX_MAP[index_name]
+        retriever = index_obj.index.as_retriever(similarity_top_k=top_k)
         return retriever.retrieve(query)
 
-    # Search all
+    # Search all indexes
     all_results = []
 
     for name, index_obj in INDEX_MAP.items():
-        retriever = index_obj.retrieve_index().as_retriever(
-            similarity_top_k=top_k
-        )
+        retriever = index_obj.index.as_retriever(similarity_top_k=top_k)
         results = retriever.retrieve(query)
         all_results.extend(results)
 
-    # re-rank
-    try:
-        def get_score(node):
-            if hasattr(node, "score"):
-                return node.score
-            return 0
+    # Rank by score
+    def get_score(node):
+        if hasattr(node, "score"):
+            return node.score
+        return 0
 
-        all_results = sorted(all_results, key=get_score, reverse=True)
-        
-    except Exception:
-        pass
+    all_results = sorted(all_results, key=get_score, reverse=True)
 
     return all_results[:top_k]
