@@ -1,6 +1,12 @@
 import os
 
-from llama_index.core import Document, VectorStoreIndex, StorageContext, load_index_from_storage, Settings
+from llama_index.core import (
+    Document,
+    VectorStoreIndex,
+    StorageContext,
+    load_index_from_storage,
+    Settings,
+)
 from llama_index.readers.file.docs.base import PDFReader
 from llama_index.readers.file import MarkdownReader
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
@@ -11,6 +17,7 @@ from local_paths import BASE_INDEX_DIR
 
 embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-mpnet-base-v2")
 Settings.embed_model = embed_model
+
 
 def get_index(index_name, chunk_size=512, base_dir=BASE_INDEX_DIR):
     index_dir = os.path.join(base_dir, index_name)
@@ -27,23 +34,27 @@ def get_index(index_name, chunk_size=512, base_dir=BASE_INDEX_DIR):
             nodes=[],
             storage_context=storage_context,
             node_parser=splitter,
-            embed_model=embed_model
+            embed_model=embed_model,
         )
         index.storage_context.persist(persist_dir=index_dir)
-    
+
     # Store persistent directory
     index._persist_dir = index_dir
     return index
+
 
 def update_docs_metadata(docs, file_name, file_path):
     for doc in docs:
         doc.doc_id = file_name
         if doc.metadata is None:
             doc.metadata = {}
-        doc.metadata.update({
-            "file_name": file_name,
-            "file_path": file_path,
-        })
+        doc.metadata.update(
+            {
+                "file_name": file_name,
+                "file_path": file_path,
+            }
+        )
+
 
 def ingest_files_to_index(index, directory):
     # Get existing doc ids
@@ -100,16 +111,18 @@ def ingest_files_to_index(index, directory):
             for node in nodes:
                 # Fixed metadata bug, do not remove
                 node.metadata = node.metadata or {}
-                node.metadata.update({
-                    "file_name": file_name,
-                    "file_path": file_path,
-                })
+                node.metadata.update(
+                    {
+                        "file_name": file_name,
+                        "file_path": file_path,
+                    }
+                )
                 index.insert(node)
 
         except Exception as e:
             print(f"ERROR: Failed to process {file_name}: {e}")
 
-    persist_dir = getattr(index, '_persist_dir', None)
+    persist_dir = getattr(index, "_persist_dir", None)
     if persist_dir:
         index.storage_context.persist(persist_dir=persist_dir)
     else:
